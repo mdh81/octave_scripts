@@ -1,6 +1,8 @@
-function orthoMatrix = ortho(eyeMin, eyeMax, inputSystem, outputSystem)
+function orthoMatrix = ortho(eyeMin, eyeMax, aspectRatio, inputSystem, outputSystem)
     globals;
     orthoMatrix = eye(4);
+    eyeMin(2) *= aspectRatio;
+    eyeMax(2) *= aspectRatio;
     orthoMatrix(1,1) = 2 / (eyeMax(1) - eyeMin(1));
     orthoMatrix(2,2) = 2 / (eyeMax(2) - eyeMin(2));
     orthoMatrix(3,3) = 2 / (eyeMax(3) - eyeMin(3));

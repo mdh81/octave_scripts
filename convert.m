@@ -1,27 +1,42 @@
-function convert(point, inputSystem, outputSystem, conversionParams)
+function result = convert(point, inputSystem, outputSystem, conversionParams)
     globals;
 
-    if inputSystem != coordinates.device || outputSystem != coordinates.viewport
-        error('convert is currently only capable of converting from device to viewport coordinates')
+    if inputSystem == coordinates.world 
+        error('Conversion from world space is not supported yet')
+    endif 
+
+    if outputSystem != coordinates.viewport
+        error('Conversion to any space other than viewport is not supported yet')
     endif
-    checkConversionParams(conversionParams);
-
-    % TODO: Expand conversionParams to include projection matrix
-
-    % compute orthographic projection matrix
-    aspectRatio = conversionParams.windowWidth / conversionParams.windowHeight;
-    eyeMin = [ conversionParams.eyeMin(1) conversionParams.eyeMin(2) * aspectRatio conversionParams.eyeMin(3) ];
-    eyeMax = [ conversionParams.eyeMax(1) conversionParams.eyeMax(2) * aspectRatio conversionParams.eyeMax(3) ];
-    projectionMatrix = ortho(eyeMin, eyeMax, csys.right, csys.left);
-    disp(projectionMatrix);
     
-    % ndc to viewport transformation
+    % Convert to device
+    deviceCoordinates = zeros(4, 1); 
 
+    disp('Projection Transform')
+    disp(conversionParams.projection);
+
+    deviceCoordinates = conversionParams.projection * [point(1) point(2) point(3) 1]';
+
+    disp('Device Coordinates')
+    disp(deviceCoordinates)
+    
+    % Convert to viewport 
+    viewport = ndcToViewportTransform(conversionParams.viewportWidth, conversionParams.viewportHeight); 
+    disp('Viewport Transform');
+    disp(viewport);
+
+    result = viewport * deviceCoordinates; 
 
 endfunction
 
-function ndcToViewportTransform(viewportWidth, viewportHeight)
-    ndcToViewport = eye(4)
-    ndcToViewport(1,1) =  
-
+function ndcToViewport = ndcToViewportTransform(viewportWidth, viewportHeight)
+    ndcToViewport = eye(4);
+    % Scaling range [-1 -1], [1 1] to [width height]
+    ndcToViewport(1,1) = viewportWidth / 2;
+    ndcToViewport(2,2) = viewportHeight / 2;
+    ndcToViewport(3,3) = 0; % Discard z-coordinate   
+    % Shift range [-1 -1], [1 1] to [0 0] and [width height]  
+    ndcToViewport(1,4) = viewportWidth/2;
+    ndcToViewport(2,4) = viewportHeight/2;
+    ndcToViewport(3,4) = 0;
 endfunction
