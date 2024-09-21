@@ -1,14 +1,24 @@
-function clipCoordinates = clipSpaceLine(lineWidth, endPointA, endPointB, modelMatrix, viewMatrix, projectionMatrix, windowWidth, windowHeight)
+function clipCoordinates = clipSpaceLine(lineWidth, endPointA, endPointB, ...
+        worldBounds, modelMatrix, viewMatrix, windowWidth, windowHeight)
+    
     globals;
-    points = [endPointA endPointA endPointB endPointB];
-    dirs = [endPointB - endPointA endPointA - endPointB endPointB - endPointA endPointA - endPointB];
+    points = [endPointA; endPointA; endPointB; endPointB]';
+    dirs = [endPointB - endPointA; endPointA - endPointB; endPointB - endPointA; endPointA - endPointB]';
     for i = 1 : 4
         dirs(:,i) /= norm(dirs(:,i));
     end
 
+    
+    % Get aspect corrected view bounds
+    [eyeMin, eyeMax] = getBoundsInCameraSpace(worldBounds(1,:), worldBounds(2,:), viewMatrix, windowWidth, windowHeight);
+    
+    % Compute projection matrix
+    projectionMatrix = ortho(eyeMin, eyeMax, windowWidth/windowHeight, csys.right, csys.left); 
+    
     % Convert inputs to to clip space
     clipPoints = zeros(4, 4);
     clipDirs = zeros(4, 4);
+
     for i = 1 : 4
         clipPoints(:,i) =  projectionMatrix * viewMatrix * modelMatrix * [points(:,i); 1];
         clipDirs(:,i) =  projectionMatrix * viewMatrix * modelMatrix * [dirs(:,i); 0];
@@ -35,8 +45,9 @@ function width = getWidthInClipSpace(windowWidth, windowHeight, lineWidthPixels)
     width = lineWidthPixels * (2 / windowWidth);
 endfunction
 
-function projection = getOrthoMatrix(eyeMin, eyeMax, windowWidth, windowHeight)
-    aspectRatio = windowWidth / windowHeight
-    eyeMin
-
+function [eyeMin, eyeMax] = getBoundsInCameraSpace(worldMin, worldMax, viewMatrix, windowWidth, windowHeight)
+    eyeMin = viewMatrix * [worldMin, 1]';
+    eyeMax = viewMatrix * [worldMax, 1]';
+    eyeMin(2) *= windowWidth / windowHeight;
+    eyeMax(2) *= windowWidth / windowHeight;
 endfunction
