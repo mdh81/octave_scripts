@@ -8,7 +8,6 @@ function clipCoordinates = clipSpaceLine(lineWidth, endPointA, endPointB, ...
         dirs(:,i) /= norm(dirs(:,i));
     end
 
-    
     % Get aspect corrected view bounds
     [eyeMin, eyeMax] = getBoundsInCameraSpace(worldBounds(1,:), worldBounds(2,:), viewMatrix, windowWidth, windowHeight);
     
